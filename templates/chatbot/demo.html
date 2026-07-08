@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -21,14 +22,12 @@
 <div class="hero">
   <h1 class="fw-bold display-5">MAHASHANKH</h1>
   <p class="text-white-50">Global System Builder — Design &amp; AI Technology</p>
-  <p class="mt-4">This is a live preview of the <strong>MahaAI</strong> chat widget frontend.<br>
+  <p class="mt-4">This is a <strong>live</strong> preview of the <strong>MahaAI</strong> chat widget.<br>
     Click the purple bubble bottom-right to open it and try typing a message.</p>
-  <p class="note">Note: this preview simulates the Django + Mistral backend with canned
-  replies so you can see the exact UI/UX. In the real deployment, /api/chat/ calls your
-  Django server which calls the Mistral API.</p>
+  <p class="note">This preview connects to your Django backend at <code>/api/chat/</code> which calls the Mistral AI API. Make sure your server is running and <code>MISTRAL_API_KEY</code> is set.</p>
 </div>
 
-<!-- ===================== WIDGET CSS (identical to static/chatbot/css/widget.css) ===================== -->
+<!-- ===================== WIDGET CSS ===================== -->
 <style>
 :root {
   --maha-purple-1: #6C5CE7;
@@ -141,189 +140,12 @@
 }
 </style>
 
-<!-- ===================== WIDGET MARKUP + JS (mocked backend for this preview) ===================== -->
+<!-- ===================== ONLY LOAD THE REAL WIDGET ===================== -->
 <script>
-(function () {
-  "use strict";
-
-  const QUICK_REPLIES = [
-    { key: "services", label: "Our Services", sub: "Explore our services",
-      prompt: "What design services does Mahashankh offer?" },
-    { key: "ai_solutions", label: "AI Solutions", sub: "Discover AI solutions",
-      prompt: "Tell me about Mahashankh's AI tools like Ajupy AI." },
-    { key: "internship", label: "Internship Programs", sub: "Learn & grow with us",
-      prompt: "Tell me about the internship programs at Mahashankh." },
-    { key: "contact", label: "Contact Us", sub: "Get in touch",
-      prompt: "How can I contact Mahashankh?" },
-  ];
-
-  const MOCK_REPLIES = {
-    services: "Mahashankh offers Textile, Fashion, Interior, Product, Wallpaper, Luxury, Tiles and Saree design — both custom human-made designs and AI-generated pattern designs.",
-    ai_solutions: "Our flagship is Ajupy AI (fashion stylist, virtual try-on, brand promoter). We also have Pattern, Textile, Tiles, Fashion and Saree Designer AI tools, plus 3D Wallpaper & Home Presenters.",
-    internship: "We run Online Internship & Certified Skill Programs for Engineering, Design and MBA students across design tech, AI tools and software development. Apply on our website's internship page.",
-    contact: "You can reach us on WhatsApp/phone at +91 6203495282 (Mon–Sat, 8 AM–5 PM), or book a call at calendly.com/mahashankhdesign/30min.",
-  };
-
-  const ICONS = { services: "👥", ai_solutions: "✨", internship: "🎓", contact: "📞" };
-  const ICON_CLASS = { services: "maha-icon-services", ai_solutions: "maha-icon-ai", internship: "maha-icon-internship", contact: "maha-icon-contact" };
-
-  let isOpen = false;
-  let hasGreeted = false;
-
-  function elFrom(html) {
-    const t = document.createElement("template");
-    t.innerHTML = html.trim();
-    return t.content.firstElementChild;
-  }
-  function nowLabel() {
-    return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  }
-  function scrollToBottom() {
-    const box = document.getElementById("maha-messages");
-    box.scrollTop = box.scrollHeight;
-  }
-  function addMessage(role, text) {
-    const box = document.getElementById("maha-messages");
-    const row = elFrom(`
-      <div class="maha-row maha-${role === "user" ? "user" : "bot"}">
-        <div class="maha-bubble-avatar">${role === "user" ? "🧑" : "🤖"}</div>
-        <div class="maha-bubble-wrap">
-          <div class="maha-bubble"></div>
-          <div class="maha-timestamp">${nowLabel()}${role === "user" ? " ✔✔" : ""}</div>
-        </div>
-      </div>`);
-    row.querySelector(".maha-bubble").textContent = text;
-    box.appendChild(row);
-    scrollToBottom();
-  }
-  function showTyping() {
-    const box = document.getElementById("maha-messages");
-    const row = elFrom(`
-      <div class="maha-row maha-bot maha-typing" id="maha-typing-row">
-        <div class="maha-bubble-avatar">🤖</div>
-        <div class="maha-bubble-wrap"><div class="maha-bubble">
-          <div class="maha-typing-dots"><span></span><span></span><span></span></div>
-        </div></div>
-      </div>`);
-    box.appendChild(row);
-    scrollToBottom();
-  }
-  function hideTyping() {
-    const row = document.getElementById("maha-typing-row");
-    if (row) row.remove();
-  }
-  function loadQuickReplies() {
-    const wrap = document.getElementById("maha-quick-replies");
-    wrap.innerHTML = "";
-    QUICK_REPLIES.forEach((qr) => {
-      const card = elFrom(`
-        <button type="button" class="maha-quick-card">
-          <span class="maha-quick-icon ${ICON_CLASS[qr.key]}">${ICONS[qr.key]}</span>
-          <span class="maha-quick-text"><strong>${qr.label}</strong><span>${qr.sub}</span></span>
-        </button>`);
-      card.addEventListener("click", () => sendMessage(qr.prompt, qr.key));
-      wrap.appendChild(card);
-    });
-  }
-  function mockReply(text, key) {
-    if (key && MOCK_REPLIES[key]) return MOCK_REPLIES[key];
-    return "Thanks for your message! In the live deployment this reply comes from the Mistral AI API, grounded on Mahashankh's real services and contact info. For now here's a placeholder response to \"" + text + "\".";
-  }
-  function sendMessage(text, key) {
-    const input = document.getElementById("maha-input");
-    const sendBtn = document.getElementById("maha-send");
-    const trimmed = (text || input.value).trim();
-    if (!trimmed) return;
-    addMessage("user", trimmed);
-    input.value = "";
-    sendBtn.disabled = true;
-    showTyping();
-    setTimeout(() => {
-      hideTyping();
-      addMessage("bot", mockReply(trimmed, key));
-      sendBtn.disabled = false;
-    }, 900);
-  }
-  function openWidget() {
-    document.getElementById("maha-widget").classList.add("maha-open");
-    isOpen = true;
-    document.querySelector("#maha-launcher .maha-dot")?.remove();
-    if (!hasGreeted) {
-      hasGreeted = true;
-      greetAndLoadQuickReplies();
-    }
-    setTimeout(() => document.getElementById("maha-input").focus(), 250);
-  }
-  function closeWidget() {
-    document.getElementById("maha-widget").classList.remove("maha-open");
-    isOpen = false;
-  }
-  function greetAndLoadQuickReplies() {
-    addMessage("bot", "Hello \u{1F44B}\nI'm MahaAI, Mahashankh's AI assistant. How can I help you today?");
-    loadQuickReplies();
-  }
-  function clearChat() {
-    document.getElementById("maha-messages").innerHTML = "";
-    document.getElementById("maha-quick-replies").innerHTML = "";
-    greetAndLoadQuickReplies();
-    document.getElementById("maha-delete-confirm").classList.remove("maha-show");
-  }
-
-  const launcher = elFrom(`
-    <button id="maha-launcher" aria-label="Chat with MahaAI">
-      <span class="maha-dot"></span>
-      <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM7 9h10v2H7V9zm7 5H7v-2h7v2zm3-6H7V6h10v2z"/></svg>
-    </button>`);
-  const widget = elFrom(`
-    <div id="maha-widget">
-      <div class="maha-header">
-        <div class="maha-avatar">🤖<span class="maha-status"></span></div>
-        <div class="maha-header-info">
-          <h5>MahaAI</h5>
-          <small><span class="maha-online-dot"></span>AI Assistant &nbsp;•&nbsp; Online</small>
-        </div>
-        <div class="maha-header-actions">
-          <button id="maha-delete" aria-label="Delete chat">
-            <svg viewBox="0 0 24 24"><path d="M6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm3-3h6l1 2h4v2H4V6h4l1-2z"/></svg>
-          </button>
-          <button id="maha-close" aria-label="Close chat">✕</button>
-        </div>
-        <div id="maha-delete-confirm">
-          <p>Delete this conversation? This can't be undone.</p>
-          <div class="maha-confirm-actions">
-            <button id="maha-cancel-delete" type="button">Cancel</button>
-            <button id="maha-confirm-delete" type="button">Delete</button>
-          </div>
-        </div>
-      </div>
-      <div id="maha-messages"></div>
-      <div id="maha-quick-replies"></div>
-      <div id="maha-input-bar">
-        <input id="maha-input" type="text" placeholder="Type your message..." autocomplete="off" />
-        <button id="maha-send" aria-label="Send message">
-          <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-        </button>
-      </div>
-      <div class="maha-footer-brand">✨ Powered by <strong>Mahashankh AI</strong></div>
-    </div>`);
-
-  document.body.appendChild(widget);
-  document.body.appendChild(launcher);
-  launcher.addEventListener("click", () => (isOpen ? closeWidget() : openWidget()));
-  document.getElementById("maha-close").addEventListener("click", closeWidget);
-  document.getElementById("maha-send").addEventListener("click", () => sendMessage());
-  document.getElementById("maha-input").addEventListener("keydown", (e) => { if (e.key === "Enter") sendMessage(); });
-  document.getElementById("maha-delete").addEventListener("click", () => {
-    document.getElementById("maha-delete-confirm").classList.toggle("maha-show");
-  });
-  document.getElementById("maha-cancel-delete").addEventListener("click", () => {
-    document.getElementById("maha-delete-confirm").classList.remove("maha-show");
-  });
-  document.getElementById("maha-confirm-delete").addEventListener("click", clearChat);
-
-  // Auto-open once so the preview is visible immediately
-  setTimeout(openWidget, 400);
-})();
+  // Point this at your Django backend if it's on a different domain:
+  // window.MAHA_API_BASE = "https://chatbot.mahashankh.com";
 </script>
+<script src="{% static 'chatbot/js/widget.js' %}"></script>
+
 </body>
 </html>
