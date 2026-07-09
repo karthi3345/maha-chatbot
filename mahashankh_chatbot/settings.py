@@ -9,7 +9,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --- SECURITY ---
-SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "django-insecure-change-this-in-production")
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "ztfzf5m)qvm0iy53u3oq33a#=o3#kqx_y8yka^=_j460hbq@3^")
 DEBUG = os.environ.get("DJANGO_DEBUG", "True") == "True"
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "*").split(",")
 
@@ -66,18 +66,21 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "mahashankh_chatbot.wsgi.application"
+import os
+
+
+import os
 
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "mahashankh_db",
-        "USER": "myuser",
-        "PASSWORD": "admin@123",
-        "HOST": "localhost",
-        "PORT": "5432",
+        "NAME": os.getenv("PGDATABASE", "mahashankh_db"),
+        "USER": os.getenv("PGUSER", "myuser"),
+        "PASSWORD": os.getenv("PGPASSWORD", "admin@123"),
+        "HOST": os.getenv("PGHOST", "localhost"),
+        "PORT": os.getenv("PGPORT", "5432"),
     }
 }
-
 
 
 AUTH_PASSWORD_VALIDATORS = [
