@@ -66,21 +66,33 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "mahashankh_chatbot.wsgi.application"
-import os
 
+_DATABASE_URL = os.environ.get("DATABASE_URL")
 
-import os
-
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("PGDATABASE", "mahashankh_db"),
-        "USER": os.getenv("PGUSER", "myuser"),
-        "PASSWORD": os.getenv("PGPASSWORD", "admin@123"),
-        "HOST": os.getenv("PGHOST", "localhost"),
-        "PORT": os.getenv("PGPORT", "5432"),
+if _DATABASE_URL:
+    import urllib.parse
+    _url = urllib.parse.urlparse(_DATABASE_URL)
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": _url.path.lstrip("/"),
+            "USER": _url.username,
+            "PASSWORD": _url.password,
+            "HOST": _url.hostname,
+            "PORT": _url.port or 5432,
+        }
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.environ.get("PGDATABASE"),
+            "USER": os.environ.get("PGUSER"),
+            "PASSWORD": os.environ.get("PGPASSWORD"),
+            "HOST": os.environ.get("PGHOST"),
+            "PORT": os.environ.get("PGPORT", "5432"),
+        }
+    }
 
 
 AUTH_PASSWORD_VALIDATORS = [
