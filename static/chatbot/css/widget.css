@@ -58,3 +58,15 @@
   background: #E24B4A;
   color: #fff;
 }
+
+.maha-bubble a {
+  color: #0066cc;
+  text-decoration: none;
+  font-weight: 500;
+  word-break: break-word;
+}
+
+.maha-bubble a:hover {
+  color: #004499;
+  text-decoration: none;
+}

@@ -37,25 +37,19 @@ def quick_replies(request):
 
 
 # ─── Clear Chat ──────────────────────────────────────────────────────────────
-
 @csrf_exempt
 @require_POST
 def clear_chat(request):
-    """
-    Deletes all messages for a session (and the session row itself).
-    Expects JSON: { "session_id": "uuid" }
-    Returns JSON: { "status": "cleared" }
-    """
     try:
-        payload = json.loads(request.body or "{}")
-    except json.JSONDecodeError:
-        return JsonResponse({"error": "Invalid JSON body."}, status=400)
-
-    session_id = payload.get("session_id")
-    if session_id:
+        payload = json.loads(request.body)
+        session_id = payload.get("session_id")
+        
         ChatSession.objects.filter(session_id=session_id).delete()
+        
+        return JsonResponse({"status": "cleared"})
 
-    return JsonResponse({"status": "cleared"})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
 
 
 # ─── Main Chat Endpoint ──────────────────────────────────────────────────────
